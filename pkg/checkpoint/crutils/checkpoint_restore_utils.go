@@ -229,23 +229,33 @@ func CRRuntimeSupportsCheckpointRestore(runtimePath string) bool {
 }
 
 // CRRuntimeSupportsPodCheckpointRestore tests if the runtime at 'runtimePath'
-// supports restoring into existing Pods. The runtime needs to support
-// the CRIU option --lsm-mount-context and the existence of this is checked
-// by this function. In addition it is necessary to at least have CRIU 3.16.
+// supports restoring into existing Pods.
 func CRRuntimeSupportsPodCheckpointRestore(runtimePath string) bool {
 	cmd := exec.Command(runtimePath, "restore", "--lsm-mount-context")
 	out, _ := cmd.CombinedOutput()
 
-	// check for runc
 	if bytes.Contains(out, []byte("flag needs an argument")) {
 		return true
 	}
 
-	// check for crun
 	if bytes.Contains(out, []byte("requires an argument")) {
 		return true
 	}
 
+	return false
+}
+
+// CRRuntimeSupportsSplit tests if the runtime at 'runtimePath'
+// supports container split (hot-fork / COW clone). This checks
+// for the existence of the 'split' subcommand.
+func CRRuntimeSupportsSplit(runtimePath string) bool {
+	cmd := exec.Command(runtimePath, "split", "--help")
+	if err := cmd.Start(); err != nil {
+		return false
+	}
+	if err := cmd.Wait(); err == nil {
+		return true
+	}
 	return false
 }
 

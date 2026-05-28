@@ -494,6 +494,26 @@ type ContainerCloneOptions struct {
 	RawImageName string
 	Run          bool
 	Force        bool
+	// Live creates a COW child from a running container via runtime split
+	// instead of creating a new container from config.
+	Live          bool
+	NoCleanup     bool
+	ShareNetwork  bool
+	ShareIPC      bool
+	ShareUTS      bool
+	SharePID      bool
+}
+
+// ContainerSplitOptions contains options for splitting a running container
+// into a COW child.
+type ContainerSplitOptions struct {
+	Parent       string
+	Name         string
+	NoCleanup    bool
+	ShareNetwork bool
+	ShareIPC     bool
+	ShareUTS     bool
+	SharePID     bool
 }
 
 // ContainerUpdateOptions containers options for updating an existing containers cgroup configuration

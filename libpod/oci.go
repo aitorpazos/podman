@@ -111,6 +111,12 @@ type OCIRuntime interface { //nolint:interfacebloat
 	// the given container.
 	CheckpointContainer(ctr *Container, options ContainerCheckpointOptions) (int64, error)
 
+	// SplitContainer creates a COW child container from a running parent.
+	// The child shares the parent's rootfs (overlayfs) and memory state
+	// (copy-on-write). The child configuration is written to childBundle.
+	// Only supported by runtimes that expose the split operation.
+	SplitContainer(parent *Container, childID string, childBundle string, noCleanup bool, shareNetwork bool, shareIPC bool, shareUTS bool, sharePID bool) error
+
 	// CheckConmonRunning verifies that the given container's Conmon
 	// instance is still running. Runtimes without Conmon, or systems where
 	// the PID of conmon is not available, should mock this as True.
@@ -121,6 +127,9 @@ type OCIRuntime interface { //nolint:interfacebloat
 	// SupportsCheckpoint returns whether this OCI runtime
 	// implementation supports the CheckpointContainer() operation.
 	SupportsCheckpoint() bool
+	// SupportsSplit returns whether this OCI runtime
+	// implementation supports the SplitContainer() operation.
+	SupportsSplit() bool
 	// SupportsJSONErrors is whether the runtime can return JSON-formatted
 	// error messages.
 	SupportsJSONErrors() bool

@@ -179,6 +179,16 @@ func (r *MissingRuntime) SupportsCheckpoint() bool {
 	return false
 }
 
+// SplitContainer is not available as the runtime is missing
+func (r *MissingRuntime) SplitContainer(_ *Container, _ string, _ string, _ bool, _ bool, _ bool, _ bool, _ bool) error {
+	return r.printError()
+}
+
+// SupportsSplit returns false as split requires a working runtime
+func (r *MissingRuntime) SupportsSplit() bool {
+	return false
+}
+
 // SupportsJSONErrors returns false as there is no runtime to give errors
 func (r *MissingRuntime) SupportsJSONErrors() bool {
 	return false

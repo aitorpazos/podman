@@ -826,6 +826,52 @@ func (r *ConmonOCIRuntime) SupportsCheckpoint() bool {
 	return crutils.CRRuntimeSupportsCheckpointRestore(r.path)
 }
 
+// SplitContainer creates a COW child from a running parent via the runtime's
+// split command. The child shares memory (COW) and rootfs (overlayfs).
+func (r *ConmonOCIRuntime) SplitContainer(parent *Container, childID string, childBundle string, noCleanup bool, shareNetwork bool, shareIPC bool, shareUTS bool, sharePID bool) error {
+	args := []string{}
+	args = append(args, r.runtimeFlags...)
+	args = append(args, "split")
+	args = append(args, "--from", parent.ID())
+	args = append(args, "--bundle", childBundle)
+	if noCleanup {
+		args = append(args, "--no-cleanup")
+	}
+	if shareNetwork {
+		args = append(args, "--share-network")
+	}
+	if shareIPC {
+		args = append(args, "--share-ipc")
+	}
+	if shareUTS {
+		args = append(args, "--share-uts")
+	}
+	if sharePID {
+		args = append(args, "--share-pid")
+	}
+	args = append(args, childID)
+
+	logrus.Debugf("Splitting container %s into %s via %s", parent.ID(), childID, r.path)
+
+	runtimeDir, err := util.GetRootlessRuntimeDir()
+	if err != nil {
+		return err
+	}
+	env := []string{fmt.Sprintf("XDG_RUNTIME_DIR=%s", runtimeDir)}
+	if path, ok := os.LookupEnv("PATH"); ok {
+		env = append(env, fmt.Sprintf("PATH=%s", path))
+	}
+
+	return r.withContainerSocketLabel(parent, func() error {
+		return utils.ExecCmdWithStdStreams(os.Stdin, os.Stdout, os.Stderr, env, r.path, args...)
+	})
+}
+
+// SupportsSplit checks if the OCI runtime supports container split (hot-fork).
+func (r *ConmonOCIRuntime) SupportsSplit() bool {
+	return crutils.CRRuntimeSupportsSplit(r.path)
+}
+
 // SupportsJSONErrors checks if the OCI runtime supports JSON-formatted error
 // messages.
 func (r *ConmonOCIRuntime) SupportsJSONErrors() bool {

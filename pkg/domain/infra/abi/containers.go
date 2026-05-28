@@ -1757,6 +1757,25 @@ func (ic *ContainerEngine) ContainerRename(ctx context.Context, nameOrID string,
 }
 
 func (ic *ContainerEngine) ContainerClone(ctx context.Context, ctrCloneOpts entities.ContainerCloneOptions) (*entities.ContainerCreateReport, error) {
+	// Live clone: create a COW child from a running container via runtime split.
+	if ctrCloneOpts.Live {
+		c, err := ic.Libpod.LookupContainer(ctrCloneOpts.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		childName := ctrCloneOpts.CreateOpts.Name
+		if childName == "" {
+			childName = c.Name() + "-clone"
+		}
+
+		if err := ic.Libpod.SplitContainer(c, childName, ctrCloneOpts.NoCleanup, ctrCloneOpts.ShareNetwork, ctrCloneOpts.ShareIPC, ctrCloneOpts.ShareUTS, ctrCloneOpts.SharePID); err != nil {
+			return nil, err
+		}
+
+		return &entities.ContainerCreateReport{Id: childName}, nil
+	}
+
 	spec := specgen.NewSpecGenerator(ctrCloneOpts.Image, ctrCloneOpts.CreateOpts.RootFS)
 	var c *libpod.Container
 	c, _, err := generate.ConfigToSpec(ic.Libpod, spec, ctrCloneOpts.ID)

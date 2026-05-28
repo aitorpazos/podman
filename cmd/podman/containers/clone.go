@@ -35,6 +35,24 @@ func cloneFlags(cmd *cobra.Command) {
 	runFlagName := "run"
 	flags.BoolVar(&ctrClone.Run, runFlagName, false, "run the new container")
 
+	liveFlagName := "live"
+	flags.BoolVar(&ctrClone.Live, liveFlagName, false, "create a live COW child from a running container (runtime split)")
+
+	noCleanupFlagName := "no-cleanup"
+	flags.BoolVar(&ctrClone.NoCleanup, noCleanupFlagName, false, "when using --live, do not terminate child when parent exits")
+
+	shareNetworkFlagName := "share-network"
+	flags.BoolVar(&ctrClone.ShareNetwork, shareNetworkFlagName, false, "when using --live, share parent's network namespace")
+
+	shareIPCFlagName := "share-ipc"
+	flags.BoolVar(&ctrClone.ShareIPC, shareIPCFlagName, false, "when using --live, share parent's IPC namespace")
+
+	shareUTSFlagName := "share-uts"
+	flags.BoolVar(&ctrClone.ShareUTS, shareUTSFlagName, false, "when using --live, share parent's UTS namespace")
+
+	sharePIDFlagName := "share-pid"
+	flags.BoolVar(&ctrClone.SharePID, sharePIDFlagName, false, "when using --live, share parent's PID namespace")
+
 	forceFlagName := "force"
 	flags.BoolVarP(&ctrClone.Force, forceFlagName, "f", false, "force the existing container to be destroyed")
 
